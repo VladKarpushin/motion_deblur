@@ -88,7 +88,7 @@ void calcPSF(Mat& outputImg, Size filterSize, int len, int theta)
     Mat h(filterSize, CV_32F, Scalar(0));
     Point point(filterSize.width / 2, filterSize.height / 2);
     //circle(h, point, R, 255, -1, 8);
-	ellipse(h, point, Size(0,len), theta, 0, 180, 255, -1, 8);
+	ellipse(h, point, Size(0,len), 90-theta, 0, 360, 255, -1, 8);
     Scalar summa = sum(h);
     outputImg = h / summa[0];
 }
