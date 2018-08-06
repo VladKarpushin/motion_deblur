@@ -14,10 +14,12 @@ void calcPSF(Mat& outputImg, Size filterSize, int len, int theta);
 void fftshift(const Mat& inputImg, Mat& outputImg);
 void filter2DFreq(const Mat& inputImg, Mat& outputImg, const Mat& H);
 void calcWnrFilter(const Mat& input_h_PSF, Mat& output_G, double nsr);
+void Edgetaper(const Mat& inputImg, Mat& outputImg, double gamma, double beta, bool bInverseFlag);
 
 const String keys =
 "{help h usage ? |             | print this message				}"
-"{image          |P1030513.JPG | input image name				}"
+//"{image          |P1030513.JPG | input image name				}"
+"{image          |P1030513_short.png | input image name				}"
 "{LEN            |78           | length of a motion				}"
 "{THETA          |12           | angle of a motion in degrees	}"
 "{SNR            |100          | signal to noise ratio			}"
@@ -63,6 +65,9 @@ int main(int argc, char *argv[])
     calcPSF(h, roi.size(), LEN, THETA);
     calcWnrFilter(h, Hw, 1.0 / double(snr));
     //Hw calculation (stop)
+
+	imgIn.convertTo(imgIn, CV_32F);
+	Edgetaper(imgIn, imgIn, 5.0, 0.2, false);
 
     // filtering (start)
     filter2DFreq(imgIn(roi), imgOut, Hw);
@@ -162,15 +167,6 @@ void calcWnrFilter(const Mat& input_h_PSF, Mat& output_G, double nsr)
 }
 //! [calcWnrFilter]
 
-// The Edgetaper() function blurs the edges of image I using weighting array
-// The Edgetaper() function reduces the ringing effect in image deblurring
-// methods that use the discrete Fourier transform, such as Deconvwnr().
-// Parameters:
-// inputImg		- input image
-// outputImg	- output image
-// gamma		- this parameter effects on window size. gamma = 1 corresponds big edges, gamma = 6 corresponds small edges
-// beta			- this parameter effects on speed of decline of edges. beta = 0.1 corresponds quick decline, beta = 0.5 corresponds slow decline
-// bInverseFlag	- flag of inversion
 void Edgetaper(const Mat& inputImg, Mat& outputImg, double gamma, double beta, bool bInverseFlag)
 {
 	int Nx = inputImg.cols;
@@ -178,24 +174,22 @@ void Edgetaper(const Mat& inputImg, Mat& outputImg, double gamma, double beta, b
 	Mat w1(1, Nx, CV_32F, Scalar(0));
 	Mat w2(Ny, 1, CV_32F, Scalar(0));
 
-	float * p1 = w1.ptr<float>(0);
-	float * p2 = w2.ptr<float>(0);
-	float dx = 2.0*CV_PI / Nx;
-	float x = -CV_PI;
+	float* p1 = w1.ptr<float>(0);
+	float* p2 = w2.ptr<float>(0);
+	float dx = float(2.0 * CV_PI / Nx);
+	float x = float(-CV_PI);
 	for (int i = 0; i < Nx; i++)
 	{
-		p1[i] = 0.5*(tanh((x + gamma / 2) / beta) - tanh((x - gamma / 2) / beta));
-		//p2[i] = 0.5*(tanh((x + gamma / 2) / beta) - tanh((x - gamma / 2) / beta));
+		p1[i] = float(0.5 * (tanh((x + gamma / 2) / beta) - tanh((x - gamma / 2) / beta)));
 		x += dx;
 	}
 
 
-	float dy = 2.0*CV_PI / Ny;
-	float y = -CV_PI;
+	float dy = float(2.0 * CV_PI / Ny);
+	float y = float(-CV_PI);
 	for (int i = 0; i < Ny; i++)
 	{
-		//p1[i] = 0.5*(tanh((x + gamma / 2) / beta) - tanh((x - gamma / 2) / beta));
-		p2[i] = 0.5*(tanh((y + gamma / 2) / beta) - tanh((y - gamma / 2) / beta));
+		p2[i] = float(0.5 * (tanh((y + gamma / 2) / beta) - tanh((y - gamma / 2) / beta)));
 		y += dy;
 	}
 
