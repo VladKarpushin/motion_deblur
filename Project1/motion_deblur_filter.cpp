@@ -131,6 +131,17 @@ void filter2DFreq(const Mat& inputImg, Mat& outputImg, const Mat& H)
     idft(complexIH, complexIH);
     split(complexIH, planes);
     outputImg = planes[0];
+
+	// filterrring check (start)
+	Mat abs0 = abs(planes[0]);
+	Mat abs1 = abs(planes[1]);
+	double MaxReal, MinReal;
+	minMaxLoc(abs0, &MinReal, &MaxReal, NULL, NULL);
+	double MaxIm, MinIm;
+	minMaxLoc(abs1, &MinIm, &MaxIm, NULL, NULL);
+	cout << "MaxReal = " << MaxReal << "; MinReal = " << MinReal << endl;
+	cout << "MaxIm = " << MaxIm << "; MinIm = " << MinIm << endl;
+	// filterrring check (stop)
 }
 //! [filter2DFreq]
 
@@ -150,3 +161,46 @@ void calcWnrFilter(const Mat& input_h_PSF, Mat& output_G, double nsr)
     divide(planes[0], denom, output_G);
 }
 //! [calcWnrFilter]
+
+// The Edgetaper() function blurs the edges of image I using weighting array
+// The Edgetaper() function reduces the ringing effect in image deblurring
+// methods that use the discrete Fourier transform, such as Deconvwnr().
+// Parameters:
+// inputImg		- input image
+// outputImg	- output image
+// gamma		- this parameter effects on window size. gamma = 1 corresponds big edges, gamma = 6 corresponds small edges
+// beta			- this parameter effects on speed of decline of edges. beta = 0.1 corresponds quick decline, beta = 0.5 corresponds slow decline
+// bInverseFlag	- flag of inversion
+void Edgetaper(const Mat& inputImg, Mat& outputImg, double gamma, double beta, bool bInverseFlag)
+{
+	int Nx = inputImg.cols;
+	int Ny = inputImg.rows;
+	Mat w1(1, Nx, CV_32F, Scalar(0));
+	Mat w2(Ny, 1, CV_32F, Scalar(0));
+
+	float * p1 = w1.ptr<float>(0);
+	float * p2 = w2.ptr<float>(0);
+	float dx = 2.0*CV_PI / Nx;
+	float x = -CV_PI;
+	for (int i = 0; i < Nx; i++)
+	{
+		p1[i] = 0.5*(tanh((x + gamma / 2) / beta) - tanh((x - gamma / 2) / beta));
+		//p2[i] = 0.5*(tanh((x + gamma / 2) / beta) - tanh((x - gamma / 2) / beta));
+		x += dx;
+	}
+
+
+	float dy = 2.0*CV_PI / Ny;
+	float y = -CV_PI;
+	for (int i = 0; i < Ny; i++)
+	{
+		//p1[i] = 0.5*(tanh((x + gamma / 2) / beta) - tanh((x - gamma / 2) / beta));
+		p2[i] = 0.5*(tanh((y + gamma / 2) / beta) - tanh((y - gamma / 2) / beta));
+		y += dy;
+	}
+
+	Mat w = w2 * w1;
+	if (bInverseFlag)
+		w = 1 - w;
+	multiply(inputImg, w, outputImg);
+}
