@@ -18,8 +18,8 @@ void Edgetaper(const Mat& inputImg, Mat& outputImg, double gamma, double beta, b
 
 const String keys =
 "{help h usage ? |             | print this message				}"
-//"{image          |P1030513.JPG | input image name				}"
-"{image          |P1030513_short.png | input image name				}"
+"{image          |P1030513.JPG | input image name				}"
+//"{image          |P1030513_short.png | input image name				}"
 "{LEN            |78           | length of a motion				}"
 "{THETA          |12           | angle of a motion in degrees	}"
 "{SNR            |100          | signal to noise ratio			}"
@@ -93,7 +93,9 @@ void calcPSF(Mat& outputImg, Size filterSize, int len, int theta)
     Mat h(filterSize, CV_32F, Scalar(0));
     Point point(filterSize.width / 2, filterSize.height / 2);
     //circle(h, point, R, 255, -1, 8);
-	ellipse(h, point, Size(0,len), 90-theta, 0, 360, 255, -1, 8);
+	//ellipse(h, point, Size(0,cvRound(float(len)/2.0)), 90-theta, 0, 360, 255, -1);
+	ellipse(h, point, Size(0, cvRound(float(len) / 2.0)), 90 - theta, 0, 360, Scalar(255), FILLED);
+	
     Scalar summa = sum(h);
     outputImg = h / summa[0];
 }
