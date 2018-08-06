@@ -76,7 +76,13 @@ int main(int argc, char *argv[])
 
     imgOut.convertTo(imgOut, CV_8U);
     normalize(imgOut, imgOut, 0, 255, NORM_MINMAX);
-    imwrite("result.jpg", imgOut);
+
+	char  buf[100];
+	sprintf_s(buf, "_LEN = %d_THETA = %d_snr = %d", LEN, THETA, snr);
+	string strOutFileName = strInFileName;
+	strOutFileName.insert(strOutFileName.size() - 4, buf);
+	imwrite(strOutFileName, imgOut);
+    //imwrite("result.jpg", imgOut);
     return 0;
 }
 
