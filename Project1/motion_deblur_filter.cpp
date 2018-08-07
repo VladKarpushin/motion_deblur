@@ -10,7 +10,7 @@ using namespace cv;
 using namespace std;
 
 void help();
-void calcPSF(Mat& outputImg, Size filterSize, int len, int theta);
+void calcPSF(Mat& outputImg, Size filterSize, int len, double theta);
 void fftshift(const Mat& inputImg, Mat& outputImg);
 void filter2DFreq(const Mat& inputImg, Mat& outputImg, const Mat& H);
 void calcWnrFilter(const Mat& input_h_PSF, Mat& output_G, double nsr);
@@ -18,10 +18,10 @@ void Edgetaper(const Mat& inputImg, Mat& outputImg, double gamma, double beta, b
 
 const String keys =
 "{help h usage ? |             | print this message				}"
-"{image          |P1030513.JPG | input image name				}"
-//"{image          |P1030513_short.png | input image name				}"
-"{LEN            |78           | length of a motion				}"
-"{THETA          |12           | angle of a motion in degrees	}"
+//"{image          |P1030513.JPG | input image name				}"
+"{image          |P1030513_short.png | input image name				}"
+"{LEN            |125          | length of a motion				}"
+"{THETA          |0.6          | angle of a motion in degrees	}"
 "{SNR            |100          | signal to noise ratio			}"
 ;
 
@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 	}
 
 	int LEN = parser.get<int>("LEN");
-	int THETA = parser.get<int>("THETA");
+	double THETA = parser.get<double>("THETA");
 	int snr = parser.get<int>("SNR");
 	string strInFileName = parser.get<String>("image");
 
@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
     normalize(imgOut, imgOut, 0, 255, NORM_MINMAX);
 
 	char  buf[100];
-	sprintf_s(buf, "_LEN = %d_THETA = %d_snr = %d", LEN, THETA, snr);
+	sprintf_s(buf, "_LEN = %d_THETA = %4.1f_snr = %d", LEN, THETA, snr);
 	string strOutFileName = strInFileName;
 	strOutFileName.insert(strOutFileName.size() - 4, buf);
 	imwrite(strOutFileName, imgOut);
@@ -94,13 +94,13 @@ void help()
 }
 
 //! [calcPSF]
-void calcPSF(Mat& outputImg, Size filterSize, int len, int theta)
+void calcPSF(Mat& outputImg, Size filterSize, int len, double theta)
 {
     Mat h(filterSize, CV_32F, Scalar(0));
     Point point(filterSize.width / 2, filterSize.height / 2);
     //circle(h, point, R, 255, -1, 8);
 	//ellipse(h, point, Size(0,cvRound(float(len)/2.0)), 90-theta, 0, 360, 255, -1);
-	ellipse(h, point, Size(0, cvRound(float(len) / 2.0)), 90 - theta, 0, 360, Scalar(255), FILLED);
+	ellipse(h, point, Size(0, cvRound(float(len) / 2.0)), 90.0 - theta, 0, 360, Scalar(255), FILLED);
 	
     Scalar summa = sum(h);
     outputImg = h / summa[0];
