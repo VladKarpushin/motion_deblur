@@ -14,15 +14,14 @@ void calcPSF(Mat& outputImg, Size filterSize, int len, double theta);
 void fftshift(const Mat& inputImg, Mat& outputImg);
 void filter2DFreq(const Mat& inputImg, Mat& outputImg, const Mat& H);
 void calcWnrFilter(const Mat& input_h_PSF, Mat& output_G, double nsr);
-void Edgetaper(const Mat& inputImg, Mat& outputImg, double gamma, double beta, bool bInverseFlag);
+void edgetaper(const Mat& inputImg, Mat& outputImg, double gamma = 5.0, double beta = 0.2);
 
 const String keys =
 "{help h usage ? |             | print this message				}"
-//"{image          |P1030513.JPG | input image name				}"
 "{image          |P1030513_short_black.png | input image name				}"
-"{LEN            |78          | length of a motion				}"
-"{THETA          |15          | angle of a motion in degrees	}"
-"{SNR            |300          | signal to noise ratio			}"
+"{LEN            |125          | length of a motion				}"
+"{THETA          |0            | angle of a motion in degrees	}"
+"{SNR            |700          | signal to noise ratio			}"
 ;
 
 int main(int argc, char *argv[])
@@ -67,7 +66,7 @@ int main(int argc, char *argv[])
     //Hw calculation (stop)
 
 	imgIn.convertTo(imgIn, CV_32F);
-	Edgetaper(imgIn, imgIn, 5.0, 0.2, false);
+	edgetaper(imgIn, imgIn);
 
     // filtering (start)
     filter2DFreq(imgIn(roi), imgOut, Hw);
@@ -82,17 +81,13 @@ int main(int argc, char *argv[])
 	string strOutFileName = strInFileName;
 	strOutFileName.insert(strOutFileName.size() - 4, buf);
 	imwrite(strOutFileName, imgOut);
-
-	//string strOutFileNameTmp = strInFileName;
-	//strOutFileNameTmp.insert(strOutFileNameTmp.size() - 4, "_after_edgetaper");
-	//imwrite(strOutFileNameTmp, imgIn);
     return 0;
 }
 
 void help()
 {
-    cout << "2018-08-06" << endl;
-    cout << "Motion_deblur_v1" << endl;
+    cout << "2018-08-10" << endl;
+    cout << "Motion_deblur_v2" << endl;
     cout << "You will learn how to recover a motion blur image by Wiener filter" << endl;
 }
 
@@ -101,10 +96,7 @@ void calcPSF(Mat& outputImg, Size filterSize, int len, double theta)
 {
     Mat h(filterSize, CV_32F, Scalar(0));
     Point point(filterSize.width / 2, filterSize.height / 2);
-    //circle(h, point, R, 255, -1, 8);
-	//ellipse(h, point, Size(0,cvRound(float(len)/2.0)), 90-theta, 0, 360, 255, -1);
 	ellipse(h, point, Size(0, cvRound(float(len) / 2.0)), 90.0 - theta, 0, 360, Scalar(255), FILLED);
-	
     Scalar summa = sum(h);
     outputImg = h / summa[0];
 }
@@ -147,17 +139,6 @@ void filter2DFreq(const Mat& inputImg, Mat& outputImg, const Mat& H)
     idft(complexIH, complexIH);
     split(complexIH, planes);
     outputImg = planes[0];
-
-	// filterrring check (start)
-	Mat abs0 = abs(planes[0]);
-	Mat abs1 = abs(planes[1]);
-	double MaxReal, MinReal;
-	minMaxLoc(abs0, &MinReal, &MaxReal, NULL, NULL);
-	double MaxIm, MinIm;
-	minMaxLoc(abs1, &MinIm, &MaxIm, NULL, NULL);
-	cout << "MaxReal = " << MaxReal << "; MinReal = " << MinReal << endl;
-	cout << "MaxIm = " << MaxIm << "; MinIm = " << MinIm << endl;
-	// filterrring check (stop)
 }
 //! [filter2DFreq]
 
@@ -178,7 +159,8 @@ void calcWnrFilter(const Mat& input_h_PSF, Mat& output_G, double nsr)
 }
 //! [calcWnrFilter]
 
-void Edgetaper(const Mat& inputImg, Mat& outputImg, double gamma, double beta, bool bInverseFlag)
+//! [edgetaper]
+void edgetaper(const Mat& inputImg, Mat& outputImg, double gamma, double beta)
 {
 	int Nx = inputImg.cols;
 	int Ny = inputImg.rows;
@@ -194,8 +176,6 @@ void Edgetaper(const Mat& inputImg, Mat& outputImg, double gamma, double beta, b
 		p1[i] = float(0.5 * (tanh((x + gamma / 2) / beta) - tanh((x - gamma / 2) / beta)));
 		x += dx;
 	}
-
-
 	float dy = float(2.0 * CV_PI / Ny);
 	float y = float(-CV_PI);
 	for (int i = 0; i < Ny; i++)
@@ -203,9 +183,7 @@ void Edgetaper(const Mat& inputImg, Mat& outputImg, double gamma, double beta, b
 		p2[i] = float(0.5 * (tanh((y + gamma / 2) / beta) - tanh((y - gamma / 2) / beta)));
 		y += dy;
 	}
-
 	Mat w = w2 * w1;
-	if (bInverseFlag)
-		w = 1 - w;
 	multiply(inputImg, w, outputImg);
 }
+//! [edgetaper]
