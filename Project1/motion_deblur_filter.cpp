@@ -19,10 +19,10 @@ void Edgetaper(const Mat& inputImg, Mat& outputImg, double gamma, double beta, b
 const String keys =
 "{help h usage ? |             | print this message				}"
 //"{image          |P1030513.JPG | input image name				}"
-"{image          |P1030513_short.png | input image name				}"
-"{LEN            |125          | length of a motion				}"
-"{THETA          |0.6          | angle of a motion in degrees	}"
-"{SNR            |100          | signal to noise ratio			}"
+"{image          |P1030513_short_black.png | input image name				}"
+"{LEN            |78          | length of a motion				}"
+"{THETA          |15          | angle of a motion in degrees	}"
+"{SNR            |300          | signal to noise ratio			}"
 ;
 
 int main(int argc, char *argv[])
@@ -82,7 +82,10 @@ int main(int argc, char *argv[])
 	string strOutFileName = strInFileName;
 	strOutFileName.insert(strOutFileName.size() - 4, buf);
 	imwrite(strOutFileName, imgOut);
-    //imwrite("result.jpg", imgOut);
+
+	//string strOutFileNameTmp = strInFileName;
+	//strOutFileNameTmp.insert(strOutFileNameTmp.size() - 4, "_after_edgetaper");
+	//imwrite(strOutFileNameTmp, imgIn);
     return 0;
 }
 
