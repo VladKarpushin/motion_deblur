@@ -1,10 +1,10 @@
 ﻿/**
-* @brief You will learn how to recover a motion blur image by Wiener filter
+* @brief You will learn how to recover an image with motion blur distortion using a Wiener filter
 * @author Karpushin Vladislav, karpushin@ngs.ru, https://github.com/VladKarpushin
 */
+#include <iostream>
 #include "opencv2/imgproc.hpp"
 #include "opencv2/imgcodecs.hpp"
-#include <iostream>
 
 using namespace cv;
 using namespace std;
@@ -18,7 +18,7 @@ void edgetaper(const Mat& inputImg, Mat& outputImg, double gamma = 5.0, double b
 
 const String keys =
 "{help h usage ? |             | print this message				}"
-"{image          |P1030513_short_black.png | input image name				}"
+"{image          |input.png    | input image name				}"
 "{LEN            |125          | length of a motion				}"
 "{THETA          |0            | angle of a motion in degrees	}"
 "{SNR            |700          | signal to noise ratio			}"
@@ -27,23 +27,23 @@ const String keys =
 int main(int argc, char *argv[])
 {
     help();
-	CommandLineParser parser(argc, argv, keys);
-	if (parser.has("help"))
-	{
-		parser.printMessage();
-		return 0;
-	}
+    CommandLineParser parser(argc, argv, keys);
+    if (parser.has("help"))
+    {
+        parser.printMessage();
+        return 0;
+    }
 
-	int LEN = parser.get<int>("LEN");
-	double THETA = parser.get<double>("THETA");
-	int snr = parser.get<int>("SNR");
-	string strInFileName = parser.get<String>("image");
+    int LEN = parser.get<int>("LEN");
+    double THETA = parser.get<double>("THETA");
+    int snr = parser.get<int>("SNR");
+    string strInFileName = parser.get<String>("image");
 
-	if (!parser.check())
-	{
-		parser.printErrors();
-		return 0;
-	}
+    if (!parser.check())
+    {
+        parser.printErrors();
+        return 0;
+    }
 
     Mat imgIn;
     imgIn = imread(strInFileName, IMREAD_GRAYSCALE);
@@ -65,8 +65,8 @@ int main(int argc, char *argv[])
     calcWnrFilter(h, Hw, 1.0 / double(snr));
     //Hw calculation (stop)
 
-	imgIn.convertTo(imgIn, CV_32F);
-	edgetaper(imgIn, imgIn);
+    imgIn.convertTo(imgIn, CV_32F);
+    edgetaper(imgIn, imgIn);
 
     // filtering (start)
     filter2DFreq(imgIn(roi), imgOut, Hw);
@@ -76,19 +76,19 @@ int main(int argc, char *argv[])
     imgOut.convertTo(imgOut, CV_8U);
     normalize(imgOut, imgOut, 0, 255, NORM_MINMAX);
 
-	char  buf[100];
-	sprintf_s(buf, "_LEN = %d_THETA = %4.1f_snr = %d", LEN, THETA, snr);
-	string strOutFileName = strInFileName;
-	strOutFileName.insert(strOutFileName.size() - 4, buf);
-	imwrite(strOutFileName, imgOut);
+    char  buf[100];
+    sprintf_s(buf, "_LEN = %d_THETA = %4.1f_snr = %d", LEN, THETA, snr);
+    string strOutFileName = strInFileName;
+    strOutFileName.insert(strOutFileName.size() - 4, buf);
+    imwrite(strOutFileName, imgOut);
     return 0;
 }
 
 void help()
 {
-    cout << "2018-08-10" << endl;
+    cout << "2018-08-14" << endl;
     cout << "Motion_deblur_v2" << endl;
-    cout << "You will learn how to recover a motion blur image by Wiener filter" << endl;
+    cout << "You will learn how to recover an image with motion blur distortion using a Wiener filter" << endl;
 }
 
 //! [calcPSF]
@@ -96,7 +96,7 @@ void calcPSF(Mat& outputImg, Size filterSize, int len, double theta)
 {
     Mat h(filterSize, CV_32F, Scalar(0));
     Point point(filterSize.width / 2, filterSize.height / 2);
-	ellipse(h, point, Size(0, cvRound(float(len) / 2.0)), 90.0 - theta, 0, 360, Scalar(255), FILLED);
+    ellipse(h, point, Size(0, cvRound(float(len) / 2.0)), 90.0 - theta, 0, 360, Scalar(255), FILLED);
     Scalar summa = sum(h);
     outputImg = h / summa[0];
 }
@@ -162,28 +162,28 @@ void calcWnrFilter(const Mat& input_h_PSF, Mat& output_G, double nsr)
 //! [edgetaper]
 void edgetaper(const Mat& inputImg, Mat& outputImg, double gamma, double beta)
 {
-	int Nx = inputImg.cols;
-	int Ny = inputImg.rows;
-	Mat w1(1, Nx, CV_32F, Scalar(0));
-	Mat w2(Ny, 1, CV_32F, Scalar(0));
+    int Nx = inputImg.cols;
+    int Ny = inputImg.rows;
+    Mat w1(1, Nx, CV_32F, Scalar(0));
+    Mat w2(Ny, 1, CV_32F, Scalar(0));
 
-	float* p1 = w1.ptr<float>(0);
-	float* p2 = w2.ptr<float>(0);
-	float dx = float(2.0 * CV_PI / Nx);
-	float x = float(-CV_PI);
-	for (int i = 0; i < Nx; i++)
-	{
-		p1[i] = float(0.5 * (tanh((x + gamma / 2) / beta) - tanh((x - gamma / 2) / beta)));
-		x += dx;
-	}
-	float dy = float(2.0 * CV_PI / Ny);
-	float y = float(-CV_PI);
-	for (int i = 0; i < Ny; i++)
-	{
-		p2[i] = float(0.5 * (tanh((y + gamma / 2) / beta) - tanh((y - gamma / 2) / beta)));
-		y += dy;
-	}
-	Mat w = w2 * w1;
-	multiply(inputImg, w, outputImg);
+    float* p1 = w1.ptr<float>(0);
+    float* p2 = w2.ptr<float>(0);
+    float dx = float(2.0 * CV_PI / Nx);
+    float x = float(-CV_PI);
+    for (int i = 0; i < Nx; i++)
+    {
+        p1[i] = float(0.5 * (tanh((x + gamma / 2) / beta) - tanh((x - gamma / 2) / beta)));
+        x += dx;
+    }
+    float dy = float(2.0 * CV_PI / Ny);
+    float y = float(-CV_PI);
+    for (int i = 0; i < Ny; i++)
+    {
+        p2[i] = float(0.5 * (tanh((y + gamma / 2) / beta) - tanh((y - gamma / 2) / beta)));
+        y += dy;
+    }
+    Mat w = w2 * w1;
+    multiply(inputImg, w, outputImg);
 }
 //! [edgetaper]
