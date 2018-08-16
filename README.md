@@ -20,7 +20,7 @@ On this page only a linear motion blur distortion is considered. The motion blur
 The point spread function (PSF) of a linear motion blur distortion is a line segment. Such a PSF is specified by two parameters: LEN is the length of the blur and THETA is 
 the angle of motion.
 
-![Point spread function of a linear motion blur distortion](images/motion_psf.png)
+![Point spread function of a linear motion blur distortion](/www/images/motion_psf.png)
 
 ### How to restore a blurred image?
 
@@ -31,14 +31,14 @@ Result
 ------
 
 Below you can see the real world image with motion blur distortion. The license plate is not readable on both cars. The red markers show the car’s license plate location.
-![Motion blur image. The license plates are not readable](images/motion_original.jpg)
+![Motion blur image. The license plates are not readable](/www/images/motion_original.jpg)
 
 
 Below you can see the restoration result for the black car license plate. The result was completed by LEN = 125, THETA = 0, SNR = 700.
-![The restored image of the black car license plate](images/black_car.jpg)
+![The restored image of the black car license plate](/www/images/black_car.jpg)
 
 Below you can see the restoration result for the white car license plate. The result was completed by LEN = 78, THETA = 15, SNR = 300.
-![The restored image of the white car license plate](images/white_car.jpg)
+![The restored image of the white car license plate](/www/images/white_car.jpg)
 
 The values of SNR, LEN and THETA were selected manually to give the best possible visual result. The THETA parameter coincides with the car’s moving direction, and the 
 LEN parameter depends on the car’s moving speed. 
