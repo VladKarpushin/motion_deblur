@@ -47,5 +47,4 @@ Sure, the result is not perfect, but at least it gives us a hint as to the image
 @note The parameters LEN and THETA are the most important. You should adjust LEN and THETA first, then SNR.
 
 You can also find a quick video demonstration of a license plate recovering method
-[YouTube](https://youtu.be/xSrE0hdhb4o).
-@youtube{xSrE0hdhb4o}
+[YouTube](https://youtu.be/xSrE0hdhb4o)
